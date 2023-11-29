@@ -1,5 +1,6 @@
 const app = require("./server/server");
-require("dotenv").config();
+const pathEnv = require("../pathEnv");
+require("dotenv").config(pathEnv);
 
 const port = process.env.SERVER_PORT || 3000;
 
