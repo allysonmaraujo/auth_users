@@ -7,9 +7,13 @@ const {
 	deleteUser,
 	updateUser,
 } = require("../controllers/users");
+const userLogin = require("../controllers/login");
 
 routes.post("/users", registerUser);
-routes.post("/login");
+
+routes.get("/login", userLogin);
+// routes.use();
+
 routes.get("/users", findUser);
 routes.patch("/users", updateUser);
 routes.delete("/users", deleteUser);

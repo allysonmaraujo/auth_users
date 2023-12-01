@@ -1,5 +1,6 @@
-const { MongoClient } = require("mongodb");
+const mongodb = require("mongodb");
 const uri = require("../connection/connection");
+const bcrypt = require("bcrypt");
 
 const registerUser = async (request, response) => {
 	const { name, email, age, cpf, password } = request.body;
@@ -10,17 +11,19 @@ const registerUser = async (request, response) => {
 			.json({ mensagem: "Todo os campos são obrigatórios" });
 	}
 
+	const encryptedPass = await bcrypt.hash(password, 10);
+
 	const objectUser = {
 		name,
 		email,
 		age,
 		cpf,
-		password,
+		password: encryptedPass,
 	};
 	let newUser = [];
 	newUser.push(objectUser);
 
-	const client = new MongoClient(uri);
+	const client = new mongodb.MongoClient(uri);
 	await client.connect();
 
 	try {
@@ -49,7 +52,7 @@ const findUser = async (request, response) => {
 			.json({ mensagem: "cpf or email necessary" });
 	}
 
-	const client = new MongoClient(uri);
+	const client = new mongodb.MongoClient(uri);
 	await client.connect();
 
 	let findQuery = {};
@@ -69,8 +72,9 @@ const findUser = async (request, response) => {
 		if (findResult === null) {
 			return response.status(404).json({ mensagem: "Nothing found" });
 		}
+		let id = findResult._id.toHexString();
 		const { password, _id, ...find } = findResult;
-
+		find.id = id;
 		return response.status(202).json(find);
 	} catch (err) {
 		console.error(err);
