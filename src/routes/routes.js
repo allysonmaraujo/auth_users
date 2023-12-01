@@ -10,8 +10,8 @@ const {
 const userLogin = require("../controllers/login");
 
 routes.post("/users", registerUser);
-
 routes.get("/login", userLogin);
+
 // routes.use();
 
 routes.get("/users", findUser);

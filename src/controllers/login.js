@@ -43,8 +43,6 @@ const userLogin = async (request, response) => {
 			token,
 		};
 
-		request.id = id;
-
 		return response.status(200).json(objectLogin);
 	} catch (err) {
 		console.log(err);
