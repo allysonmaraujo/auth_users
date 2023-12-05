@@ -1,7 +1,10 @@
 const mongodb = require("mongodb");
 const uri = require("../connection/connection");
 const bcrypt = require("bcrypt");
-const { registerUserSchema } = require("../schema/usersSchema");
+const {
+	registerUserSchema,
+	deleteUserSchema,
+} = require("../schema/usersSchema");
 
 const registerUser = async (request, response) => {
 	const { name, email, age, cpf, password } = request.body;
@@ -33,6 +36,7 @@ const registerUser = async (request, response) => {
 				mensagem: "Document successfully inserted",
 			});
 		}
+		await client.close();
 	} catch (err) {
 		return response.status(500).json({
 			mensagem: `${err.message}`,
@@ -49,18 +53,17 @@ const findUser = async (request, response) => {
 			.json({ mensagem: "cpf or email necessary" });
 	}
 
-	const client = new mongodb.MongoClient(uri);
-	await client.connect();
-
-	let findQuery = {};
-
-	if (cpf) {
-		findQuery = { cpf: Number(cpf) };
-	} else {
-		findQuery = { email };
-	}
-
 	try {
+		const client = new mongodb.MongoClient(uri);
+		await client.connect();
+
+		let findQuery = {};
+
+		if (cpf) {
+			findQuery = { cpf: Number(cpf) };
+		} else {
+			findQuery = { email };
+		}
 		const findResult = await client
 			.db("UsersTable")
 			.collection("list")
@@ -72,6 +75,8 @@ const findUser = async (request, response) => {
 		let id = findResult._id.toHexString();
 		const { password, _id, ...find } = findResult;
 		find.id = id;
+
+		await client.close();
 		return response.status(202).json(find);
 	} catch (err) {
 		console.error(err);
@@ -100,6 +105,25 @@ const deleteUser = async (request, response) => {
 		response
 			.status(403)
 			.json({ message: "email necessary to delete account" });
+	}
+	try {
+		await deleteUserSchema.validate(request.body);
+
+		const client = new mongodb.MongoClient(uri);
+		await client.connect();
+
+		const deleteResult = await client
+			.db("UsersTable")
+			.collection("list")
+			.deleteOne({ email });
+		if (deleteResult.acknowledged) {
+			response.status(200).json({ message: "User deleted" });
+		}
+
+		await client.close();
+	} catch (err) {
+		console.error(err);
+		return response.status(500).json(err.message);
 	}
 };
 

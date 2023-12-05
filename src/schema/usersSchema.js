@@ -24,7 +24,12 @@ const loginUserSchamea = yup.object({
 	password: yup.string().min(8).max(30).required(),
 });
 
+const deleteUserSchema = yup.object({
+	email: yup.string().email().required(),
+});
+
 module.exports = {
 	registerUserSchema,
 	loginUserSchamea,
+	deleteUserSchema,
 };
