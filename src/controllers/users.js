@@ -1,32 +1,29 @@
 const mongodb = require("mongodb");
 const uri = require("../connection/connection");
 const bcrypt = require("bcrypt");
+const { registerUserSchema } = require("../schema/usersSchema");
 
 const registerUser = async (request, response) => {
 	const { name, email, age, cpf, password } = request.body;
 
-	if (!name || !email || !age || !cpf || !password) {
-		return response
-			.status(400)
-			.json({ mensagem: "Todo os campos são obrigatórios" });
-	}
-
-	const encryptedPass = await bcrypt.hash(password, 10);
-
-	const objectUser = {
-		name,
-		email,
-		age,
-		cpf,
-		password: encryptedPass,
-	};
-	let newUser = [];
-	newUser.push(objectUser);
-
-	const client = new mongodb.MongoClient(uri);
-	await client.connect();
-
 	try {
+		await registerUserSchema.validate(request.body);
+
+		const encryptedPass = await bcrypt.hash(password, 10);
+
+		const objectUser = {
+			name,
+			email,
+			age,
+			cpf,
+			password: encryptedPass,
+		};
+		let newUser = [];
+		newUser.push(objectUser);
+
+		const client = new mongodb.MongoClient(uri);
+		await client.connect();
+
 		const insertResult = await client
 			.db("UsersTable")
 			.collection("list")
@@ -38,7 +35,7 @@ const registerUser = async (request, response) => {
 		}
 	} catch (err) {
 		return response.status(500).json({
-			mensagem: `Something went wrong trying to insert the new documents: ${err}\n`,
+			mensagem: `${err.message}`,
 		});
 	}
 };

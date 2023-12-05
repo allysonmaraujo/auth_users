@@ -8,8 +8,9 @@ const {
 	updateUser,
 } = require("../controllers/users");
 const userLogin = require("../controllers/login");
+const verifyDuplicatedUser = require("../middlewares/middleware");
 
-routes.post("/users", registerUser);
+routes.post("/users", verifyDuplicatedUser, registerUser);
 routes.get("/login", userLogin);
 
 // routes.use();
