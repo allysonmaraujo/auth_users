@@ -26,6 +26,7 @@ const verifyDuplicatedUser = async (request, response, next) => {
 				.status(403)
 				.json({ message: "User already registered" });
 		}
+		await client.close();
 	} catch (err) {
 		console.log(err);
 		return response.status(500).json(`${err.message}`);

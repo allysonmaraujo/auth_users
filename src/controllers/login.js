@@ -3,12 +3,15 @@ const jwt = require("jsonwebtoken");
 const mongodb = require("mongodb");
 const uri = require("../connection/connection");
 const path = require("../../pathEnv");
+const { loginUserSchamea } = require("../schema/usersSchema");
 require("dotenv").config(path);
 
 const userLogin = async (request, response) => {
 	const { email, password } = request.body;
 
 	try {
+		await loginUserSchamea.validate(request.body);
+
 		const client = new mongodb.MongoClient(uri);
 		await client.connect();
 
@@ -42,7 +45,7 @@ const userLogin = async (request, response) => {
 			user,
 			token,
 		};
-
+		await client.close();
 		return response.status(200).json(objectLogin);
 	} catch (err) {
 		console.log(err);
