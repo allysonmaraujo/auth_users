@@ -3,6 +3,7 @@ const uri = require("../connection/connection");
 const bcrypt = require("bcrypt");
 const {
 	registerUserSchema,
+	updateUserSchema,
 	deleteUserSchema,
 } = require("../schema/usersSchema");
 
@@ -89,6 +90,44 @@ const findUser = async (request, response) => {
 };
 
 const updateUser = async (request, response) => {
+	const { name, emailAntigo, emailNovo, age, cpf, password } = request.body;
+
+	try {
+		await updateUserSchema.validate(request.body);
+
+		const client = new mongodb.MongoClient(uri);
+		await client.connect();
+
+		const encryptPass = await bcrypt.hash(password, 10);
+
+		const objectUpdate = {
+			name,
+			email: emailNovo,
+			age,
+			cpf,
+			password: encryptPass,
+		};
+		const query = { email: emailAntigo };
+		const updateResult = await client
+			.db("UsersTable")
+			.collection("list")
+			.findOneAndReplace(query, objectUpdate);
+
+		if (updateResult === null) {
+			return response
+				.status(404)
+				.json({ message: "email not found to update user's document" });
+		}
+
+		await client.close();
+		return response.status(200).json({ message: "Update complete" });
+	} catch (err) {
+		console.log(err);
+		return response.status(500).json({ message: err.message });
+	}
+};
+
+const patchUser = async (request, response) => {
 	const { name, email, age, cpf, password } = request.body;
 
 	if (!name && !email && !age && !cpf && !password) {
@@ -99,12 +138,48 @@ const updateUser = async (request, response) => {
 };
 
 const deleteUser = async (request, response) => {
-	const { email } = request.body;
+	const { email, password } = request.body;
 
-	if (!email) {
-		response
-			.status(403)
-			.json({ message: "email necessary to delete account" });
+	try {
+		await deleteUserSchema.validate(request.body);
+
+		const client = new mongodb.MongoClient(uri);
+		await client.connect();
+
+		const query = { email };
+
+		const findResult = await client
+			.db("UsersTable")
+			.collection("list")
+			.findOne(query);
+		if (findResult === null) {
+			return response
+				.status(404)
+				.json({ message: "email not found to delete user's document" });
+		}
+
+		const validatePass = await bcrypt.compare(
+			password,
+			findResult.password
+		);
+
+		if (!validatePass) {
+			return response
+				.status(403)
+				.json({ message: "wrong User or Password" });
+		}
+		const deleteResult = await client
+			.db("UsersTable")
+			.collection("list")
+			.findOneAndDelete(query);
+		console.log(deleteResult);
+
+		await client.close();
+		return response
+			.status(200)
+			.json({ message: "User's document was sucessfuly deleted" });
+	} catch (err) {
+		return response.status(500).json({ message: `${err.message}` });
 	}
 	try {
 		await deleteUserSchema.validate(request.body);
@@ -131,5 +206,6 @@ module.exports = {
 	registerUser,
 	findUser,
 	updateUser,
+	patchUser,
 	deleteUser,
 };
