@@ -11,17 +11,18 @@ const registerUser = async (request, response) => {
 	const { name, email, age, cpf, password } = request.body;
 
 	try {
-		await registerUserSchema.validate(request.body);
-
-		const encryptedPass = await bcrypt.hash(password, 10);
-
 		const objectUser = {
 			name,
 			email,
 			age,
 			cpf,
-			password: encryptedPass,
 		};
+
+		const encryptPass = await bcrypt.hash(password, 10, (err, hash) => {
+			if (err) throw err;
+			objectUser.password = hash;
+		});
+
 		let newUser = [];
 		newUser.push(objectUser);
 
@@ -32,12 +33,13 @@ const registerUser = async (request, response) => {
 			.db("UsersTable")
 			.collection("list")
 			.insertOne(objectUser);
-		if (insertResult.acknowledged) {
-			return response.status(201).json({
-				mensagem: "Document successfully inserted",
+		if (!insertResult.acknowledged) {
+			return response.status(500).json({
+				mensagem: "Something wrong to insert a new user",
 			});
 		}
 		await client.close();
+		return response.status(201).json();
 	} catch (err) {
 		return response.status(500).json({
 			mensagem: `${err.message}`,
@@ -127,16 +129,6 @@ const updateUser = async (request, response) => {
 	}
 };
 
-const patchUser = async (request, response) => {
-	const { name, email, age, cpf, password } = request.body;
-
-	if (!name && !email && !age && !cpf && !password) {
-		return response
-			.status(400)
-			.json({ message: "We need one or more fields to update user" });
-	}
-};
-
 const deleteUser = async (request, response) => {
 	const { email, password } = request.body;
 
@@ -172,7 +164,11 @@ const deleteUser = async (request, response) => {
 			.db("UsersTable")
 			.collection("list")
 			.findOneAndDelete(query);
-		console.log(deleteResult);
+		if (!deleteResult.acknowledged) {
+			return response
+				.status(400)
+				.json({ message: "User's document was not deleted" });
+		}
 
 		await client.close();
 		return response
@@ -181,24 +177,58 @@ const deleteUser = async (request, response) => {
 	} catch (err) {
 		return response.status(500).json({ message: `${err.message}` });
 	}
-	try {
-		await deleteUserSchema.validate(request.body);
+};
 
+const patchUser = async (request, response) => {
+	const { name, email, age, cpf, password } = request.body;
+
+	try {
 		const client = new mongodb.MongoClient(uri);
 		await client.connect();
 
-		const deleteResult = await client
+		let query = { email };
+		let objectPatch = {};
+		if (name) {
+			objectPatch.name = name;
+		}
+		if (age) {
+			objectPatch.age = Number(age);
+		}
+		if (cpf) {
+			const query = { cpf: Number(cpf) };
+			const findDuplicatedCpf = await client
+				.db("UsersTable")
+				.collection("list")
+				.findOne(query);
+			if (findDuplicatedCpf !== null) {
+				return response.status(403).json({
+					message:
+						"cpf already registered on our database to another user",
+				});
+			}
+		}
+		objectPatch.cpf = Number(cpf);
+		if (password) {
+			const encryptPass = await bcrypt.hash(password, 10, (err, hash) => {
+				if (err) throw err;
+				objectPatch.password = hash;
+			});
+		}
+		const patch = { $set: objectPatch };
+
+		const patchResult = await client
 			.db("UsersTable")
 			.collection("list")
-			.deleteOne({ email });
-		if (deleteResult.acknowledged) {
-			response.status(200).json({ message: "User deleted" });
-		}
+			.updateOne(query, patch);
 
+		console.log(patchResult);
 		await client.close();
+		return response
+			.status(200)
+			.json({ message: "User's register sucessfully updated" });
 	} catch (err) {
 		console.error(err);
-		return response.status(500).json(err.message);
+		return response.status(500).json({ message: `${err.message}` });
 	}
 };
 
