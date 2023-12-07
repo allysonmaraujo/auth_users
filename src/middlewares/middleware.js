@@ -21,14 +21,13 @@ const verifyDuplicatedUser = async (request, response, next) => {
 			.collection("list")
 			.findOne({ email });
 
+		await client.close();
 		if (searchCpf !== null || searchEmail !== null) {
 			return response
 				.status(403)
 				.json({ message: "User already registered" });
 		}
-		await client.close();
 	} catch (err) {
-		console.log(err);
 		return response.status(500).json(`${err.message}`);
 	}
 	next();
