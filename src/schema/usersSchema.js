@@ -19,11 +19,6 @@ const registerUserSchema = yup.object({
 	password: yup.string().min(8).max(30).required(),
 });
 
-const loginUserSchamea = yup.object({
-	email: yup.string().email().required(),
-	password: yup.string().min(8).max(30).required(),
-});
-
 const updateUserSchema = yup.object({
 	name: yup.string().required(),
 	emailAntigo: yup.string().email().required(),
@@ -49,7 +44,6 @@ const deleteUserSchema = yup.object({
 
 module.exports = {
 	registerUserSchema,
-	loginUserSchamea,
 	updateUserSchema,
 	deleteUserSchema,
 };

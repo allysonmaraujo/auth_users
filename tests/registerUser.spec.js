@@ -14,7 +14,7 @@ describe("Register new users", () => {
 	});
 });
 
-describe("Register new users", () => {
+describe("Register new users with duplicated CPF", () => {
 	test("Register with CPF already registered, middleware filter, register must fail", async () => {
 		const result = await request(app).post("/users").send({
 			name: "nononono",
@@ -30,7 +30,7 @@ describe("Register new users", () => {
 	});
 });
 
-describe("Register new users", () => {
+describe("Register new users with duplicated EMAIL", () => {
 	test("Register with EMAIL already registered, middleware filter, register must fail", async () => {
 		const result = await request(app).post("/users").send({
 			name: "nononono",
