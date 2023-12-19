@@ -8,9 +8,12 @@ const {
 } = require("../schema/usersSchema");
 
 const registerUser = async (request, response) => {
+
 	const { name, email, age, cpf, password } = request.body;
 
 	try {
+		await registerUserSchema.validate(request.body)
+
 		const objectUser = {
 			name,
 			email,
@@ -27,6 +30,7 @@ const registerUser = async (request, response) => {
 		newUser.push(objectUser);
 
 		const client = new mongodb.MongoClient(uri);
+		
 		await client.connect();
 
 		const insertResult = await client
@@ -39,13 +43,14 @@ const registerUser = async (request, response) => {
 			});
 		}
 		await client.close();
-		return response.status(201).json();
+		
+		return response.status(201).json({message: "register complete"});
 	} catch (err) {
 		return response.status(500).json({
 			mensagem: `${err.message}`,
 		});
 	}
-};
+}; 
 
 const findUser = async (request, response) => {
 	const { email, cpf } = request.body;
@@ -122,7 +127,7 @@ const updateUser = async (request, response) => {
 		}
 
 		await client.close();
-		return response.status(200).json({ message: "Update complete" });
+		return response.status(202).json({ message: "Update complete" });
 	} catch (err) {
 		console.log(err);
 		return response.status(500).json({ message: err.message });
@@ -224,7 +229,7 @@ const patchUser = async (request, response) => {
 		console.log(patchResult);
 		await client.close();
 		return response
-			.status(200)
+			.status(202)
 			.json({ message: "User's register sucessfully updated" });
 	} catch (err) {
 		console.error(err);
