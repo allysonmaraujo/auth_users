@@ -2,10 +2,8 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const mongodb = require("mongodb");
 const uri = require("../connection/connection");
-const path = require("../../pathEnv");
 const loginUserSchamea = require("../schema/loginSchema");
-
-require("dotenv").config(path);
+require("dotenv").config();
 
 const userLogin = async (request, response) => {
 	const { email, password } = request.body;
@@ -42,7 +40,7 @@ const userLogin = async (request, response) => {
 		const { password: _pass, _id, ...user } = findlogin;
 		let id = findlogin._id.toHexString();
 		user.id = id;
-		const token = jwt.sign({ id }, process.env.JWT_PASS, {
+		const token = jwt.sign({ id }, process.env.PRIVATE_KEY, {
 			expiresIn: "8h",
 		});
 		const objectLogin = {
@@ -51,6 +49,7 @@ const userLogin = async (request, response) => {
 		};
 		return response.status(202).json(objectLogin);
 	} catch (err) {
+		console.log(err.message);
 		return response.status(500).json({ message: "Internal error" });
 	}
 };

@@ -4,10 +4,14 @@ Essa API tem como finalidade a criação, edição, atualização (parcial ou co
 
 O código foi escrito em inglês, adiante será colocado a descrição e explicações também em inglês.
 
+Resumo das tecnologias empregadas
+
 - O projetado em Javascript / Node / Express
 - Banco de dados MongoDB (NoSQL)
 - Jest / Supertest para teste unitário/integração/E2E
+- Yup para validação de formulários / padrões de input.
 - Bcrypt para criptografia de dados sensiveis do usuario.
+- Jasonwebtoken para gerração de token.
 - Nodemon para monitoramento de alterações
 
 

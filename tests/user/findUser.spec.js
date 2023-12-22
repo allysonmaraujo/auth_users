@@ -1,4 +1,4 @@
-const app = require("../src/server/server");
+const app = require("../../src/server/server");
 const request = require("supertest");
 
 describe(" Find a user", () => {

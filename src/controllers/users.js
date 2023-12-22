@@ -1,11 +1,16 @@
 const mongodb = require("mongodb");
-const uri = require("../connection/connection");
 const bcrypt = require("bcrypt");
 const {
 	registerUserSchema,
 	updateUserSchema,
 	deleteUserSchema,
 } = require("../schema/usersSchema");
+const uri = require("../connection/connection");
+
+
+const dataBaseName = "UsersTable";
+const collectionName = "list";
+
 
 const registerUser = async (request, response) => {
 
@@ -34,15 +39,17 @@ const registerUser = async (request, response) => {
 		await client.connect();
 
 		const insertResult = await client
-			.db("UsersTable")
-			.collection("list")
+			.db(dataBaseName)
+			.collection(collectionName)
 			.insertOne(objectUser);
+		
+		await client.close();
+		
 		if (!insertResult.acknowledged) {
 			return response.status(500).json({
 				mensagem: "Something wrong to insert a new user",
 			});
 		}
-		await client.close();
 		
 		return response.status(201).json({message: "register complete"});
 	} catch (err) {
@@ -62,20 +69,23 @@ const findUser = async (request, response) => {
 	}
 
 	try {
-		const client = new mongodb.MongoClient(uri);
-		await client.connect();
-
 		let findQuery = {};
-
+		
 		if (cpf) {
 			findQuery = { cpf: Number(cpf) };
 		} else {
 			findQuery = { email };
 		}
+		
+		const client = new mongodb.MongoClient(uri);
+		await client.connect();
+		
 		const findResult = await client
-			.db("UsersTable")
-			.collection("list")
+			.db(dataBaseName)
+			.collection(collectionName)
 			.findOne(findQuery);
+		
+		await client.close();
 
 		if (findResult === null) {
 			return response.status(404).json({ mensagem: "Nothing found" });
@@ -84,10 +94,8 @@ const findUser = async (request, response) => {
 		const { password, _id, ...find } = findResult;
 		find.id = id;
 
-		await client.close();
 		return response.status(202).json(find);
 	} catch (err) {
-		console.error(err);
 		return response
 			.status(500)
 			.json(
@@ -102,11 +110,9 @@ const updateUser = async (request, response) => {
 	try {
 		await updateUserSchema.validate(request.body);
 
-		const client = new mongodb.MongoClient(uri);
-		await client.connect();
-
+		
 		const encryptPass = await bcrypt.hash(password, 10);
-
+		
 		const objectUpdate = {
 			name,
 			email: emailNovo,
@@ -115,10 +121,16 @@ const updateUser = async (request, response) => {
 			password: encryptPass,
 		};
 		const query = { email: emailAntigo };
+		
+		const client = new mongodb.MongoClient(uri);
+		await client.connect();
+		
 		const updateResult = await client
-			.db("UsersTable")
-			.collection("list")
+			.db(dataBaseName)
+			.collection(collectionName)
 			.findOneAndReplace(query, objectUpdate);
+		
+		await client.close();
 
 		if (updateResult === null) {
 			return response
@@ -126,7 +138,6 @@ const updateUser = async (request, response) => {
 				.json({ message: "email not found to update user's document" });
 		}
 
-		await client.close();
 		return response.status(202).json({ message: "Update complete" });
 	} catch (err) {
 		console.log(err);
@@ -140,42 +151,45 @@ const deleteUser = async (request, response) => {
 	try {
 		await deleteUserSchema.validate(request.body);
 
-		const client = new mongodb.MongoClient(uri);
 		await client.connect();
-
+		
 		const query = { email };
-
+		
 		const findResult = await client
-			.db("UsersTable")
-			.collection("list")
+			.db(dataBaseName)
+			.collection(collectionName)
 			.findOne(query);
 		if (findResult === null) {
 			return response
-				.status(404)
+			.status(404)
 				.json({ message: "email not found to delete user's document" });
 		}
 
 		const validatePass = await bcrypt.compare(
 			password,
 			findResult.password
-		);
-
-		if (!validatePass) {
-			return response
+			);
+			
+			if (!validatePass) {
+				return response
 				.status(403)
 				.json({ message: "wrong User or Password" });
-		}
+			}
+		const client = new mongodb.MongoClient(uri);
+		
 		const deleteResult = await client
 			.db("UsersTable")
 			.collection("list")
 			.findOneAndDelete(query);
-		if (!deleteResult.acknowledged) {
+			
+		await client.close();
+
+		if (!deleteResult) {
 			return response
 				.status(400)
 				.json({ message: "User's document was not deleted" });
 		}
 
-		await client.close();
 		return response
 			.status(200)
 			.json({ message: "User's document was sucessfuly deleted" });
@@ -186,12 +200,32 @@ const deleteUser = async (request, response) => {
 
 const patchUser = async (request, response) => {
 	const { name, email, age, cpf, password } = request.body;
-
+	
 	try {
 		const client = new mongodb.MongoClient(uri);
 		await client.connect();
-
+		
 		let query = { email };
+		const findEmail = await client
+			.db(dataBaseName)
+			.collection(collectionName)
+			.findOne(query)
+		if (!findEmail){
+			return response.status(404).json("User not found by email")
+		}
+		
+		const queryCPF = { cpf: Number(cpf) };
+		const findDuplicatedCpf = await client
+			.db(dataBaseName)
+			.collection(collectionName)
+			.findOne(queryCPF);
+			
+		if (findDuplicatedCpf !== null) {
+			return response.status(403).json({
+				message: "cpf already registered on our database to another user"
+			});
+		}
+		
 		let objectPatch = {};
 		if (name) {
 			objectPatch.name = name;
@@ -200,39 +234,29 @@ const patchUser = async (request, response) => {
 			objectPatch.age = Number(age);
 		}
 		if (cpf) {
-			const query = { cpf: Number(cpf) };
-			const findDuplicatedCpf = await client
-				.db("UsersTable")
-				.collection("list")
-				.findOne(query);
-			if (findDuplicatedCpf !== null) {
-				return response.status(403).json({
-					message:
-						"cpf already registered on our database to another user",
-				});
-			}
+			objectPatch.cpf = Number(cpf);
 		}
-		objectPatch.cpf = Number(cpf);
 		if (password) {
 			const encryptPass = await bcrypt.hash(password, 10, (err, hash) => {
 				if (err) throw err;
 				objectPatch.password = hash;
 			});
 		}
+		
 		const patch = { $set: objectPatch };
 
 		const patchResult = await client
-			.db("UsersTable")
-			.collection("list")
+			.db(dataBaseName)
+			.collection(collectionName)
 			.updateOne(query, patch);
-
+		
 		console.log(patchResult);
+		
 		await client.close();
 		return response
 			.status(202)
 			.json({ message: "User's register sucessfully updated" });
 	} catch (err) {
-		console.error(err);
 		return response.status(500).json({ message: `${err.message}` });
 	}
 };
