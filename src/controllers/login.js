@@ -2,9 +2,8 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const mongodb = require("mongodb");
 const uri = require("../connection/connection");
-const path = require("../../pathEnv");
-const { loginUserSchamea } = require("../schema/usersSchema");
-require("dotenv").config(path);
+const loginUserSchamea = require("../schema/loginSchema");
+require("dotenv").config();
 
 const userLogin = async (request, response) => {
 	const { email, password } = request.body;
@@ -13,6 +12,7 @@ const userLogin = async (request, response) => {
 		await loginUserSchamea.validate(request.body);
 
 		const client = new mongodb.MongoClient(uri);
+
 		await client.connect();
 
 		const findlogin = await client
@@ -20,9 +20,11 @@ const userLogin = async (request, response) => {
 			.collection("list")
 			.findOne({ email });
 
+		await client.close();
+
 		if (findlogin === null) {
 			return response
-				.status(403)
+				.status(404)
 				.json({ message: "incorrect email or password" });
 		}
 
@@ -31,24 +33,23 @@ const userLogin = async (request, response) => {
 
 		if (!verifyLogin) {
 			return response
-				.status(403)
+				.status(404)
 				.json({ message: "incorrect email or password" });
 		}
 
 		const { password: _pass, _id, ...user } = findlogin;
 		let id = findlogin._id.toHexString();
 		user.id = id;
-		const token = jwt.sign({ id }, process.env.JWT_PASS, {
+		const token = jwt.sign({ id }, process.env.PRIVATE_KEY, {
 			expiresIn: "8h",
 		});
 		const objectLogin = {
 			user,
 			token,
 		};
-		await client.close();
-		return response.status(200).json(objectLogin);
+		return response.status(202).json(objectLogin);
 	} catch (err) {
-		console.log(err);
+		console.log(err.message);
 		return response.status(500).json({ message: "Internal error" });
 	}
 };
