@@ -37,6 +37,21 @@ const updateUserSchema = yup.object({
 	password: yup.string().min(8).max(30).required(),
 });
 
+const patchUserSchema = yup.object({
+	name: yup.string(),
+	email: yup.string().email().required(),
+	age: yup
+		.string()
+		.min(1)
+		.max(3)
+		.matches(/^[0-9]+$/),
+	cpf: yup
+		.string()
+		.length(11)
+		.matches(/^[0-9]+$/),
+	password: yup.string().min(8).max(30)
+});
+
 const deleteUserSchema = yup.object({
 	email: yup.string().email().required(),
 	password: yup.string().min(8).max(30).required(),
@@ -45,5 +60,6 @@ const deleteUserSchema = yup.object({
 module.exports = {
 	registerUserSchema,
 	updateUserSchema,
+	patchUserSchema,
 	deleteUserSchema,
 };

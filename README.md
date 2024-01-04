@@ -116,6 +116,7 @@ A API tem 6 endpoints e iremos detalhar o funcionamento de cada um.
 | `email` | `string` | **Obrigatório**. Deve conter um email válido |
 | `age` | `integer` | **Obrigatório**. Deve conter um numeral, positivo, com no máximo 3 digitos|
 | `cpf` | `integer` | **Obrigatório**. Deve conter um numeral, positivo, com no máximo 11 digitos |
+| `password` | `string` | **Obrigatório**. Deve conter uma senha com minimo de 8 máximo de 30 caracteres |
 
 ```javascript
 {
@@ -123,6 +124,7 @@ A API tem 6 endpoints e iremos detalhar o funcionamento de cada um.
 	"email": "usuario@email.com",
 	"age": 33,
 	"cpf": 11122233344,
+	"password": "123456"
 }
 ```	
 #### Retorna um status code http
@@ -141,7 +143,7 @@ A API tem 6 endpoints e iremos detalhar o funcionamento de cada um.
 ```http
  PUT /users
 ```
-#### Como o método atualiza todas as propriedades do cadastro, deve ser inserido obrigatóriamente todos os campos  para o atualizar, porém haverá um campo a mais para email onde deve ser colocado o email já cadastrado e o novo email para cadastro, são os campos: name, email (antigo), email (novo), age, cpf. Obedecendo regras conforme o exemplo e descrição de input abaixo.
+#### Como o método atualiza todas as propriedades do cadastro, deve ser inserido obrigatóriamente todos os campos para atualizar, porém haverá um campo a mais de email onde deve ser colocado o email já cadastrado e o novo email para cadastro, são os campos: name, email (antigo), email (novo), age, cpf. Obedecendo regras conforme o exemplo e descrição de input abaixo.
 
 
 #### Exemplo de input 
@@ -153,6 +155,7 @@ A API tem 6 endpoints e iremos detalhar o funcionamento de cada um.
 | `email(novo)` | `string` | **Obrigatório**. Deve conter um novo email válido |
 | `age` | `integer` | **Obrigatório**. Deve conter um novo numeral, positivo, com no máximo 3 digitos|
 | `cpf` | `integer` | **Obrigatório**. Deve conter um novo numeral, positivo, com no máximo 11 digitos |
+| `password` | `string` | **Obrigatório**. Deve conter uma senha com minimo de 8 máximo de 30 caracteres |
 
 ```javascript
 {
@@ -179,7 +182,7 @@ A API tem 6 endpoints e iremos detalhar o funcionamento de cada um.
 ```http
  PATCH /users
 ```
-#### Atualiza um ou mais campos nas propriedades do cadastro, podendo ser os campos: name, age, cpf e/ou password. Obedecendo regras conforme o exemplo e descrição de input abaixo. Obrigatório preencher um campo.
+#### Atualiza um ou mais campos nas propriedades do cadastro, com base no email cadastrado, logo esse campo é obrigatório. Todos os campos podem ser atualizados com excessão do ID, sendo: name, age, cpf e/ou password. Obedecendo regras conforme o exemplo e descrição de input abaixo.
 
 
 #### Exemplo de input 
@@ -187,15 +190,13 @@ A API tem 6 endpoints e iremos detalhar o funcionamento de cada um.
 | JSON   | Tipo       | Descrição                           |
 | :---------- | :--------- | :---------------------------------- |
 | `name` | `string` |  Pode conter uma nova string válida com o nome |
-| `email` | `string` | Pode conter um novo email válido |
+| `email` | `string` | **Obrigatório**. Deve conter um email cadastrado válido |
 | `age` | `integer` |  Pode conter um novo numeral, positivo, com no máximo 3 digitos|
 | `cpf` | `integer` |  Pode conter um novo numeral, positivo, com no máximo 11 digitos 
 
 ```javascript
 {
-	"name": "Usuario",
-	"emailAntigo": "usuario@email.com",
-	"emailNovo": "usuario@novoemail.com",
+	"email": "usuario@novoemail.com",
 	"age": 33,
 	"cpf": 11122233344,
 }
@@ -216,23 +217,20 @@ A API tem 6 endpoints e iremos detalhar o funcionamento de cada um.
 ```http
  DELETE /users
 ```
-#### Exclui um cadastro completo, baseando-se no campo email e senha válidos cadastrados. Obedecendo regras conforme o exemplo e descrição de input abaixo. 
+#### Exclui um cadastro completo, baseando-se no campo email e senha válidos cadastrados, logo é obrigatório preencher esses dois campos, obedecendo regras conforme o exemplo e descrição de input abaixo. 
 
 
 #### Exemplo de input 
 
 | JSON   | Tipo       | Descrição                           |
 | :---------- | :--------- | :---------------------------------- |
-| `name` | `string` |  Pode conter uma nova string válida com o nome |
-| `email` | `string` | Pode conter um novo email válido |
+| `email` | `string` |  **Obrigatório**. Deve conter um email cadastrado válido |
+| `senha` | `string` | **Obrigatório**. Deve conter a senha correspondente |
 
 ```javascript
 {
-	"name": "Usuario",
-	"emailAntigo": "usuario@email.com",
-	"emailNovo": "usuario@novoemail.com",
-	"age": 33,
-	"cpf": 11122233344,
+	"email": "usuario@email.com",
+	"password": "123456"
 }
 ```
 #### Retorna um status code http

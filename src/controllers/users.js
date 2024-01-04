@@ -4,12 +4,13 @@ const {
 	registerUserSchema,
 	updateUserSchema,
 	deleteUserSchema,
+	patchUserSchema,
 } = require("../schema/usersSchema");
 const uri = require("../connection/connection");
 
 
-const dataBaseName = "UsersTable";
-const collectionName = "list";
+const dataBaseName = "users";
+const collectionName = "active";
 
 
 const registerUser = async (request, response) => {
@@ -18,13 +19,18 @@ const registerUser = async (request, response) => {
 
 	try {
 		await registerUserSchema.validate(request.body)
-
+		const created = new Date();
+		
 		const objectUser = {
-			name,
-			email,
-			age,
-			cpf,
-		};
+			log : 	{
+					created,
+					},
+				active: true,
+				name,
+				email,
+				age,
+				cpf,
+				}
 
 		const encryptPass = await bcrypt.hash(password, 10, (err, hash) => {
 			if (err) throw err;
@@ -38,14 +44,14 @@ const registerUser = async (request, response) => {
 		
 		await client.connect();
 
-		const insertResult = await client
+		const insertUserResult = await client
 			.db(dataBaseName)
 			.collection(collectionName)
 			.insertOne(objectUser);
 		
 		await client.close();
 		
-		if (!insertResult.acknowledged) {
+		if (!insertUserResult.acknowledged) {
 			return response.status(500).json({
 				mensagem: "Something wrong to insert a new user",
 			});
@@ -80,18 +86,18 @@ const findUser = async (request, response) => {
 		const client = new mongodb.MongoClient(uri);
 		await client.connect();
 		
-		const findResult = await client
+		const findUserResult = await client
 			.db(dataBaseName)
 			.collection(collectionName)
 			.findOne(findQuery);
 		
 		await client.close();
 
-		if (findResult === null) {
+		if (findUserResult === null) {
 			return response.status(404).json({ mensagem: "Nothing found" });
 		}
-		let id = findResult._id.toHexString();
-		const { password, _id, ...find } = findResult;
+		let id = findUserResult._id.toHexString();
+		const { password, _id, ...find } = findUserResult;
 		find.id = id;
 
 		return response.status(202).json(find);
@@ -125,14 +131,31 @@ const updateUser = async (request, response) => {
 		const client = new mongodb.MongoClient(uri);
 		await client.connect();
 		
-		const updateResult = await client
+		const findDuplicatedEmail = await client
+			.db(dataBaseName)
+			.collection(collectionName)
+			.findOne({ email : emailNovo })
+
+		if (findDuplicatedEmail){
+			return response.status(403).json({message: "email already register to another user"})
+		}
+		const findDuplicatedCpf = await client
+			.db(dataBaseName)
+			.collection(collectionName)
+			.findOne({ cpf })
+
+		if (findDuplicatedCpf.cpf === cpf && findDuplicatedCpf.email !== emailAntigo){
+			return response.status(403).json({message: "cpf already register to another user"})
+		}
+
+		const updateUserResult = await client
 			.db(dataBaseName)
 			.collection(collectionName)
 			.findOneAndReplace(query, objectUpdate);
 		
 		await client.close();
 
-		if (updateResult === null) {
+		if (updateUserResult === null) {
 			return response
 				.status(404)
 				.json({ message: "email not found to update user's document" });
@@ -145,84 +168,35 @@ const updateUser = async (request, response) => {
 	}
 };
 
-const deleteUser = async (request, response) => {
-	const { email, password } = request.body;
-
-	try {
-		await deleteUserSchema.validate(request.body);
-
-		await client.connect();
-		
-		const query = { email };
-		
-		const findResult = await client
-			.db(dataBaseName)
-			.collection(collectionName)
-			.findOne(query);
-		if (findResult === null) {
-			return response
-			.status(404)
-				.json({ message: "email not found to delete user's document" });
-		}
-
-		const validatePass = await bcrypt.compare(
-			password,
-			findResult.password
-			);
-			
-			if (!validatePass) {
-				return response
-				.status(403)
-				.json({ message: "wrong User or Password" });
-			}
-		const client = new mongodb.MongoClient(uri);
-		
-		const deleteResult = await client
-			.db("UsersTable")
-			.collection("list")
-			.findOneAndDelete(query);
-			
-		await client.close();
-
-		if (!deleteResult) {
-			return response
-				.status(400)
-				.json({ message: "User's document was not deleted" });
-		}
-
-		return response
-			.status(200)
-			.json({ message: "User's document was sucessfuly deleted" });
-	} catch (err) {
-		return response.status(500).json({ message: `${err.message}` });
-	}
-};
-
 const patchUser = async (request, response) => {
 	const { name, email, age, cpf, password } = request.body;
 	
 	try {
+		await patchUserSchema.validate(request.body)
+		
 		const client = new mongodb.MongoClient(uri);
 		await client.connect();
 		
 		let query = { email };
-		const findEmail = await client
+		const findEmailResult = await client
 			.db(dataBaseName)
 			.collection(collectionName)
 			.findOne(query)
-		if (!findEmail){
-			return response.status(404).json("User not found by email")
+		
+		if (!findEmailResult){
+			return response.status(404).json("User's email not found")
 		}
 		
 		const queryCPF = { cpf: Number(cpf) };
-		const findDuplicatedCpf = await client
+		const duplicatedCpfResult = await client
 			.db(dataBaseName)
 			.collection(collectionName)
 			.findOne(queryCPF);
 			
-		if (findDuplicatedCpf !== null) {
+	
+		if (duplicatedCpfResult !== null && duplicatedCpfResult.email !== email) {
 			return response.status(403).json({
-				message: "cpf already registered on our database to another user"
+				message: "cpf already registered to another user"
 			});
 		}
 		
@@ -237,7 +211,7 @@ const patchUser = async (request, response) => {
 			objectPatch.cpf = Number(cpf);
 		}
 		if (password) {
-			const encryptPass = await bcrypt.hash(password, 10, (err, hash) => {
+			const encryptPass = await bcrypt.hash(toString(password), 10, (err, hash) => {
 				if (err) throw err;
 				objectPatch.password = hash;
 			});
@@ -245,17 +219,69 @@ const patchUser = async (request, response) => {
 		
 		const patch = { $set: objectPatch };
 
-		const patchResult = await client
+		const patchUserResult = await client
 			.db(dataBaseName)
 			.collection(collectionName)
 			.updateOne(query, patch);
 		
-		console.log(patchResult);
-		
 		await client.close();
-		return response
+		return response		
 			.status(202)
 			.json({ message: "User's register sucessfully updated" });
+	} catch (err) {
+		console.log(err);
+		return response.status(500).json({ message: `${err.message}` });
+	}
+};
+
+const deleteUser = async (request, response) => {
+	const { email, password } = request.body;
+
+	try {
+		await deleteUserSchema.validate(request.body);
+
+		const client = new mongodb.MongoClient(uri);
+		await client.connect();
+		
+		const query = { email };
+		
+		const findUserResult = await client
+			.db(dataBaseName)
+			.collection(collectionName)
+			.findOne(query);
+		if (findUserResult === null) {
+			return response
+			.status(404)
+				.json({ message: "email not found to delete user's document" });
+		}
+
+		const validatePass = await bcrypt.compare(
+			password,
+			findUserResult.password
+		);
+			
+		if (!validatePass) {
+			return response
+			.status(403)
+			.json({ message: "wrong User or Password" });
+		}
+		
+		const deleteUserResult = await client
+			.db(dataBaseName)
+			.collection(collectionName)
+			.findOneAndDelete(query);
+			
+		await client.close();
+
+		if (!deleteUserResult) {
+			return response
+				.status(400)
+				.json({ message: "User's document was not deleted" });
+		}
+
+		return response
+			.status(200)
+			.json({ message: "User's document was sucessfuly deleted" });
 	} catch (err) {
 		return response.status(500).json({ message: `${err.message}` });
 	}
