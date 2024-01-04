@@ -1,0 +1,238 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "auth_users",
+    "description": "Documentação da API CRUD para de cadastro de usuários",
+    "version": "1.0.0"
+  },
+  "host": "localhost:3000",
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+  "paths": {
+    "/users": {
+      "post": {
+        "description": "Endpoint a registrar informações de um <b>novo usuário</b>",
+        "parameters": [
+          {
+            "type": "json",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                    "example": "Name Example"
+                  },
+                "email": {
+                  "example": "user@email.com"
+                },
+                "cpf": {
+                  "example": "11122233344"
+                },
+                "age": {
+                  "example": "44"
+                },
+                "password": {
+                  "example": "nononono"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "get": {
+        "description": "Endpoint a coletar informações de <b>um usuário específico</b>",
+        "parameters":[
+        {
+          "type": "json",
+          "in":"body",
+          "required": true,
+          "schema":{
+            "type":"object",
+            "properties":{
+              "email": {
+                "example": "example@email.com"
+              },
+              "cpf":{
+                "example": "11122233344" 
+              }
+            }
+          }
+        }  
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted"
+          },
+          "400": {                
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "put": {
+        "description": "Endpoint a substituir completamente as informações de um <b>usuário</b>",
+        "parameters": [
+          {
+            "type": "json",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "example": "Name Example"
+                },
+                "emailAntigo": {
+                  "example": "antigo@email.com"
+                },
+                "emailNovo": {
+                  "example": "novo@email.com"
+                },
+                "age": {
+                  "example": 33
+                },
+                "cpf": {
+                  "example": 11122233344
+                },
+                "password": {
+                  "example": "nononono"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "patch": {
+        "description": "Endpoint a atualizar parcialmente as informações de um <b>usuário</b>",
+        "parameters": [
+          {
+            "type": "json",
+            "in":"body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "example": "Patch Name"
+                },
+                "email": {
+                  "example": "patch@email.com"
+                },
+                "age": {
+                  "example": 88
+                },
+                "cpf": {
+                  "example": 88877744455
+                },
+                "password": {
+                  "example": "123654"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "type": "json",
+            "in":"body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "example": "user@email.com"
+                },
+                "password": {
+                  "example": "nononono"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/login": {
+      "get": {
+        "description": "",
+        "responses": {
+          "202": {
+            "description": "Accepted"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    }
+  }
+}
