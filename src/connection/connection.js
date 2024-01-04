@@ -1,6 +1,4 @@
-const pathEnv = require("../../pathEnv");
-require("dotenv").config(pathEnv);
-//problema no dotenv , tive que configurar o caminho do arquivo
+require("dotenv").config();
 
 const user = process.env.USER_DB;
 const pass = process.env.PASS_DB;

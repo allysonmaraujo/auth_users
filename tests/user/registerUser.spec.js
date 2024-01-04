@@ -1,20 +1,20 @@
-const app = require("../src/server/server");
+const app = require("../../src/server/server");
 const request = require("supertest");
 
 describe("Register new users", () => {
 	test("Register with all fields correct, must return ok", async () => {
 		const result = await request(app).post("/users").send({
-			name: "Tester Jason",
-			email: "tester@testfy.com",
+			name: "Jester Tester",
+			email: "jester@jester.com",
 			age: 33,
 			cpf: 77777777788,
-			password: "123456abc",
+			password: "123456abcdef",
 		});
 		expect(result.statusCode).toBe(201);
 	});
 });
 
-describe("Register new users", () => {
+describe("Register new users with duplicated CPF", () => {
 	test("Register with CPF already registered, middleware filter, register must fail", async () => {
 		const result = await request(app).post("/users").send({
 			name: "nononono",
@@ -30,11 +30,11 @@ describe("Register new users", () => {
 	});
 });
 
-describe("Register new users", () => {
+describe("Register new users with duplicated EMAIL", () => {
 	test("Register with EMAIL already registered, middleware filter, register must fail", async () => {
 		const result = await request(app).post("/users").send({
 			name: "nononono",
-			email: "tester@testfy.com",
+			email: "jester@jester.com",
 			age: 11,
 			cpf: 11111111111,
 			password: "654321cba",
@@ -49,10 +49,10 @@ describe("Register new users", () => {
 describe("Register new users", () => {
 	test("Register without NAME, middleware, must return fail", async () => {
 		const result = await request(app).post("/users").send({
-			email: "proxy@testfy.com",
-			age: 44,
-			cpf: 22222222244,
-			password: "654321cba",
+			email: "jester@jester.com",
+			age: 33,
+			cpf: 77777777788,
+			password: "123456abcdef",
 		});
 		expect(result.statusCode).toBe(500);
 		expect(typeof result.error.text).toBe("string");
@@ -63,10 +63,10 @@ describe("Register new users", () => {
 describe("Register new users", () => {
 	test("Register without EMAIL, middleware, must return fail", async () => {
 		const result = await request(app).post("/users").send({
-			name: "Tester Jason",
-			age: 44,
-			cpf: 22222222244,
-			password: "654321cba",
+			name: "Jester Tester",
+			age: 33,
+			cpf: 77777777788,
+			password: "123456abcdef",
 		});
 		expect(result.statusCode).toBe(500);
 		expect(typeof result.error.text).toBe("string");
@@ -77,10 +77,10 @@ describe("Register new users", () => {
 describe("Register new users", () => {
 	test("Register without AGE, middleware, must return fail", async () => {
 		const result = await request(app).post("/users").send({
-			name: "Tester Jason",
-			email: "proxy@testfy.com",
-			cpf: 22222222244,
-			password: "654321cba",
+			name: "Jester Tester",
+			email: "jester@jester.com",
+			cpf: 77777777788,
+			password: "123456abcdef",
 		});
 		expect(result.statusCode).toBe(500);
 		expect(typeof result.error.text).toBe("string");
@@ -91,10 +91,10 @@ describe("Register new users", () => {
 describe("Register new users", () => {
 	test("Register without CPF, middleware, must return fail", async () => {
 		const result = await request(app).post("/users").send({
-			name: "Tester Jason",
-			email: "proxy@testfy.com",
-			age: 44,
-			password: "654321cba",
+			name: "Jester Tester",
+			email: "jester@jester.com",
+			age: 33,
+			password: "123456abcdef",
 		});
 		expect(result.statusCode).toBe(500);
 		expect(typeof result.error.text).toBe("string");
@@ -105,10 +105,10 @@ describe("Register new users", () => {
 describe("Register new users", () => {
 	test("Register without PASSWORD, middleware, must return fail", async () => {
 		const result = await request(app).post("/users").send({
-			name: "Tester Jason",
-			email: "proxy@testfy.com",
-			age: 44,
-			cpf: 22222222244,
+			name: "Jester Tester",
+			email: "jester@jester.com",
+			age: 33,
+			cpf: 77777777788,
 		});
 		expect(result.statusCode).toBe(500);
 		expect(typeof result.error.text).toBe("string");
