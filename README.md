@@ -4,6 +4,7 @@ Essa API tem como finalidade a criação, edição, atualização (parcial ou co
 
 O código foi escrito em inglês, adiante será colocado a descrição e explicações também em inglês.
 
+
 Resumo das tecnologias empregadas
 
 - O projetado em Javascript / Node / Express
@@ -20,6 +21,7 @@ Resumo das tecnologias empregadas
 
 ## Endpoints
 A API tem 6 endpoints e iremos detalhar o funcionamento de cada um.
+
 1) > GET /login
 2) > GET /users
 3) > POST /users
@@ -50,6 +52,7 @@ A API tem 6 endpoints e iremos detalhar o funcionamento de cada um.
     "password": "senhaDoUsuario"
 }
 ```
+
 ### Exemplo de retorno
 
 #### a) Retorna um status code http
@@ -57,6 +60,7 @@ A API tem 6 endpoints e iremos detalhar o funcionamento de cada um.
 202 (Accepted)
 ```
 #### b) Retorna um objeto no formato JSON
+
 ```javascript
 {
 	"name": "Usuario",
@@ -68,11 +72,13 @@ A API tem 6 endpoints e iremos detalhar o funcionamento de cada um.
 
 #
 
+
 ### 2) Detalhar informações de um usuario
 ```http
  GET /users
 ```
 #### Retorna um ítem específico e um status, contendo os dados do usuário baseado no email informado
+
 
 #### Exemplo de input 
 
@@ -89,6 +95,7 @@ A API tem 6 endpoints e iremos detalhar o funcionamento de cada um.
 ```javascript
 200 (ok)
 ```
+
 #### Retorna um objeto no formato JSON
 ```javascript
 {
@@ -100,11 +107,14 @@ A API tem 6 endpoints e iremos detalhar o funcionamento de cada um.
 }
 ```
 
+
 #
+
 ### 3) Cadastrar um usuário
 ```http
  POST /users
 ```
+
 #### Deve ser inserido todos os campos obrigatórios para o cadastro do usuário: name, email, age, cpf. Obedecendo regras conforme o exemplo e descrição de input abaixo.
 
 
@@ -117,6 +127,7 @@ A API tem 6 endpoints e iremos detalhar o funcionamento de cada um.
 | `age` | `integer` | **Obrigatório**. Deve conter um numeral, positivo, com no máximo 3 digitos|
 | `cpf` | `integer` | **Obrigatório**. Deve conter um numeral, positivo, com no máximo 11 digitos |
 | `password` | `string` | **Obrigatório**. Deve conter uma senha com minimo de 8 máximo de 30 caracteres |
+
 
 ```javascript
 {
@@ -247,4 +258,15 @@ A API tem 6 endpoints e iremos detalhar o funcionamento de cada um.
 
 > [!IMPORTANT]
 > Mensagens de erro específicas serão retornadas caso haja algum erro no input da requisição.
+
+=======
+}
+```
+#### Retorna um status http 200 (ok)
+```javascript
+
+```
+
+#### Códigos de erros especificos serão retornados caso haja incoerencia no input da requisição
+
 
