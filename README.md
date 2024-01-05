@@ -79,7 +79,6 @@ A API tem 6 endpoints e iremos detalhar o funcionamento de cada um.
 ```
 #### Retorna um ítem específico e um status, contendo os dados do usuário baseado no email informado
 
-
 #### Exemplo de input 
 
 | JSON   | Tipo       | Descrição                           |
@@ -259,14 +258,4 @@ A API tem 6 endpoints e iremos detalhar o funcionamento de cada um.
 > [!IMPORTANT]
 > Mensagens de erro específicas serão retornadas caso haja algum erro no input da requisição.
 
-=======
-}
-```
-#### Retorna um status http 200 (ok)
-```javascript
-
-```
-
-#### Códigos de erros especificos serão retornados caso haja incoerencia no input da requisição
-
-
+>>>>>>>>> Temporary merge branch 2
